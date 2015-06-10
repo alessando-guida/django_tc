@@ -9,6 +9,8 @@ class ClientiAdmin(admin.ModelAdmin):
     #show fields in the table
     list_display = ('cliente_id','nome_azienda', 'nome_contatto', 'data_inizio')
 
+
+
 class ManualiAdmin(admin.ModelAdmin):
 
     def print_btn(self, obj):
@@ -26,6 +28,36 @@ class ManualiAdmin(admin.ModelAdmin):
     ordering = ('-data_rilascio',)
 
 
+    actions = ['download_csv']
+
+    def download_csv(self, request, queryset):
+        """
+        Function to add the download action to download as CSV the selected fields.
+        """
+        """
+        :param request:
+        :param queryset:
+        :return:
+        """
+        import csv
+        from django.http import HttpResponse
+
+
+        #creates file on root
+        f = open("some.csv", "w")
+        writer = csv.writer(f)
+        writer.writerow(['codice', 'stato', 'data_rilascio', 'applicazione', 'lingua', 'file_link', 'note'])
+        for s in queryset:
+            writer.writerow([s.codice, s.stato, s.data_rilascio, s.applicazione, s.lingua, s.file_link, s.note])
+        f.close()
+
+        #download the file
+        f = open("some.csv", "r")
+        response = HttpResponse(f, content_type="text/csv")
+        response['Content-Disposition'] = 'attachment; filename=tabella_manuali_esportati.csv'
+        return response
+
+    download_csv.short_description = "Scarica file excell per elementi selezionati."
 
 
 class Manuali_uscitiAdmin(admin.ModelAdmin):
@@ -115,14 +147,8 @@ class Manuali_uscitiAdmin(admin.ModelAdmin):
 
 
 
-#IMPORT-export application
-from import_export.admin import ImportExportActionModelAdmin
-from manuali.resources import ManualiResources
 
-class ManualiAdmin2(ImportExportActionModelAdmin):
 
-    resource_class = ManualiResources
-    pass
 
 
 
